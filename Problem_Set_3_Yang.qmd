@@ -1,0 +1,768 @@
+---
+title: "Problem_Set_3_Yang"
+author: "Yang Han"
+format: html
+code-fold: true
+code-summary: "Show the code"
+error: false
+warning: FALSE
+editor: visual
+---
+
+Link to Github repository:
+
+# Question 1
+
+## Part a
+
+\* Firstly, import the data and transfer them into stata format.
+
+```{#| code-fold: show}
+import sasxport5 "VIX_D.XPT"
+save "VIX_D"
+import sasxport5 "DEMO_D.XPT", clear
+```
+
+. do "C:\\Users\\86180\\AppData\\Local\\Temp\\STD5200_000000.tmp"
+
+. import sasxport5 "VIX_D.XPT"
+
+.
+
+end of do-file
+
+. do "C:\\Users\\86180\\AppData\\Local\\Temp\\STD5200_000000.tmp"
+
+. save "VIX_D"
+
+file VIX_D.dta saved
+
+.
+
+end of do-file
+
+. do "C:\\Users\\86180\\AppData\\Local\\Temp\\STD5200_000000.tmp"
+
+. import sasxport5 "DEMO_D.XPT", clear
+
+.
+
+end of do-file
+
+\* Merge two files together and print out the total sample size.
+
+```{#| code-fold: show}
+merge 1:1 seqn using "VIX_D.dta", keep(match)
+count
+```
+
+. do "C:\\Users\\86180\\AppData\\Local\\Temp\\STD5200_000000.tmp"
+
+. merge 1:1 seqn using "VIX_D.dta", keep(match)
+
+Result Number of obs
+
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
+
+Not matched 0
+
+Matched 6,980 (\_merge==3)
+
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
+
+.
+
+end of do-file
+
+. do "C:\\Users\\86180\\AppData\\Local\\Temp\\STD5200_000000.tmp"
+
+. count
+
+6,980
+
+.
+
+end of do-file
+
+\* We can see now the sample size now is 6980.
+
+## Part b
+
+\* Grouping each 10-year age bracket first.
+
+```{#| code-fold: show}
+egen age_group = cut(ridageyr), at(0(10)99)
+```
+
+\* Then create a table to check the number of people who wear glasses/contact lenses.
+
+```{#| code-fold: show}
+table (age_group) (viq220) (), missing statistic(proportion) nformat(%4.3f) 
+```
+
+. do "C:\\Users\\86180\\AppData\\Local\\Temp\\STD5200_000000.tmp"
+
+. egen age_group = cut(ridageyr), at(0(10)99)
+
+.
+
+end of do-file
+
+. do "C:\\Users\\86180\\AppData\\Local\\Temp\\STD5200_000000.tmp"
+
+. table (age_group) (viq220) (), missing statistic(proportion) nformat(%4.3f)
+
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
+
+\| Glasses/contact lenses worn for distance
+
+\| 1 2 9 . Total
+
+\-\-\-\-\-\-\-\-\--+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
+
+age_group \|
+
+10 \| 0.096 0.203 0.017 0.316
+
+20 \| 0.044 0.090 0.000 0.012 0.146
+
+30 \| 0.039 0.069 0.010 0.117
+
+40 \| 0.041 0.070 0.006 0.117
+
+50 \| 0.048 0.039 0.003 0.090
+
+60 \| 0.056 0.034 0.004 0.095
+
+70 \| 0.043 0.021 0.003 0.067
+
+80 \| 0.030 0.015 0.007 0.051
+
+Total \| 0.396 0.542 0.000 0.062 1.000
+
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
+
+.
+
+end of do-file
+
+\* From this table, the first column is the desired result, which is the proportion
+
+\* of those who wear glasses/contact lenses for distance vision.
+
+## Part c
+
+\* Remove missing values and don't know values to ensure the response only has
+
+\* 2 logical values 1 and 2.
+
+```{#| code-fold: show}
+drop if viq220 == 9
+drop if viq220 == .
+```
+
+. do "C:\\Users\\86180\\AppData\\Local\\Temp\\STD5200_000000.tmp"
+
+. drop if viq220 == 9
+
+(2 observations deleted)
+
+.
+
+end of do-file
+
+. do "C:\\Users\\86180\\AppData\\Local\\Temp\\STD5200_000000.tmp"
+
+. drop if viq220 == .
+
+(433 observations deleted)
+
+.
+
+end of do-file
+
+\* Then fit the regression models and remove observations with missing values
+
+\* in given predictors. Before fitting the model, we should replace viq220 with
+
+\* values 2 to 0. After fitting the models, get their AIC values.
+
+\* Model 1
+
+```{#| code-fold: show}
+drop if ridageyr == .
+replace viq220 = 0 if viq220 == 2
+logistic viq220 ridageyr
+estat ic
+```
+
+. do "C:\\Users\\86180\\AppData\\Local\\Temp\\STD5200_000000.tmp"
+
+. drop if ridageyr == .
+
+(0 observations deleted)
+
+.
+
+end of do-file
+
+. do "C:\\Users\\86180\\AppData\\Local\\Temp\\STD5200_000000.tmp"
+
+. replace viq220 = 0 if viq220 == 2
+
+(3,780 real changes made)
+
+.
+
+end of do-file
+
+. do "C:\\Users\\86180\\AppData\\Local\\Temp\\STD5200_000000.tmp"
+
+. logistic viq220 ridageyr
+
+Logistic regression Number of obs = 6,545
+
+LR chi2(1) = 443.37
+
+Prob \> chi2 = 0.0000
+
+Log likelihood = -4235.9433 Pseudo R2 = 0.0497
+
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
+
+viq220 \| Odds ratio Std. err. z P\>\|z\| \[95% conf. interval\]
+
+\-\-\-\-\-\-\-\-\-\-\-\--+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
+
+ridageyr \| 1.02498 .0012356 20.47 0.000 1.022561 1.027405
+
+\_cons \| .283379 .0151461 -23.59 0.000 .2551952 .3146755
+
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
+
+Note: \_cons estimates baseline odds.
+
+.
+
+end of do-file
+
+. do "C:\\Users\\86180\\AppData\\Local\\Temp\\STD5200_000000.tmp"
+
+. estat ic
+
+Akaike's information criterion and Bayesian information criterion
+
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
+
+Model \| N ll(null) ll(model) df AIC BIC
+
+\-\-\-\-\-\-\-\-\-\-\-\--+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
+
+. \| 6,247 -4259.553 -4057.936 2 8119.871 8133.351
+
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
+
+Note: BIC uses N = number of observations. See \[R\] BIC note.
+
+.
+
+end of do-file
+
+\* Model 2
+
+```{#| code-fold: show}
+drop if ridreth1 == .
+drop if riagendr == .
+logistic viq220 ridageyr ridreth1 riagendr
+estat ic
+```
+
+. do "C:\\Users\\86180\\AppData\\Local\\Temp\\STD5200_000000.tmp"
+
+. drop if ridreth1 == .
+
+(0 observations deleted)
+
+.
+
+end of do-file
+
+. do "C:\\Users\\86180\\AppData\\Local\\Temp\\STD5200_000000.tmp"
+
+. drop if riagendr == .
+
+(0 observations deleted)
+
+.
+
+end of do-file
+
+. do "C:\\Users\\86180\\AppData\\Local\\Temp\\STD5200_000000.tmp"
+
+. logistic viq220 ridageyr ridreth1 riagendr
+
+Logistic regression Number of obs = 6,545
+
+LR chi2(3) = 564.76
+
+Prob \> chi2 = 0.0000
+
+Log likelihood = -4175.2478 Pseudo R2 = 0.0633
+
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
+
+viq220 \| Odds ratio Std. err. z P\>\|z\| \[95% conf. interval\]
+
+\-\-\-\-\-\-\-\-\-\-\-\--+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
+
+ridageyr \| 1.025324 .0012549 20.43 0.000 1.022867 1.027786
+
+ridreth1 \| 1.13275 .0254723 5.54 0.000 1.083909 1.183791
+
+riagendr \| 1.645628 .0866472 9.46 0.000 1.484271 1.824526
+
+\_cons \| .0918421 .0109509 -20.02 0.000 .0727022 .1160209
+
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
+
+Note: \_cons estimates baseline odds.
+
+.
+
+end of do-file
+
+. do "C:\\Users\\86180\\AppData\\Local\\Temp\\STD5200_000000.tmp"
+
+. estat ic
+
+Akaike's information criterion and Bayesian information criterion
+
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
+
+Model \| N ll(null) ll(model) df AIC BIC
+
+\-\-\-\-\-\-\-\-\-\-\-\--+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
+
+. \| 6,247 -4259.553 -4000.785 4 8009.571 8036.53
+
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
+
+Note: BIC uses N = number of observations. See \[R\] BIC note.
+
+.
+
+end of do-file
+
+\* Model 3
+
+```{#| code-fold: show}
+drop if indfmpir == .
+logistic viq220 ridageyr ridreth1 riagendr indfmpir
+estat ic
+```
+
+. do "C:\\Users\\86180\\AppData\\Local\\Temp\\STD5200_000000.tmp"
+
+. drop if indfmpir == .
+
+(298 observations deleted)
+
+.
+
+end of do-file
+
+. do "C:\\Users\\86180\\AppData\\Local\\Temp\\STD5200_000000.tmp"
+
+. logistic viq220 ridageyr ridreth1 riagendr indfmpir
+
+Logistic regression Number of obs = 6,247
+
+LR chi2(4) = 588.32
+
+Prob \> chi2 = 0.0000
+
+Log likelihood = -3965.3948 Pseudo R2 = 0.0691
+
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
+
+viq220 \| Odds ratio Std. err. z P\>\|z\| \[95% conf. interval\]
+
+\-\-\-\-\-\-\-\-\-\-\-\--+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
+
+ridageyr \| 1.024047 .0012924 18.83 0.000 1.021517 1.026583
+
+ridreth1 \| 1.097216 .0258548 3.94 0.000 1.047693 1.149079
+
+riagendr \| 1.679667 .0909057 9.58 0.000 1.510619 1.867631
+
+indfmpir \| 1.15327 .019618 8.38 0.000 1.115453 1.192368
+
+\_cons \| .0717786 .0092205 -20.51 0.000 .0558023 .0923289
+
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
+
+Note: \_cons estimates baseline odds.
+
+.
+
+end of do-file
+
+. do "C:\\Users\\86180\\AppData\\Local\\Temp\\STD5200_000000.tmp"
+
+. estat ic
+
+Akaike's information criterion and Bayesian information criterion
+
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
+
+Model \| N ll(null) ll(model) df AIC BIC
+
+\-\-\-\-\-\-\-\-\-\-\-\--+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
+
+. \| 6,247 -4259.553 -3965.395 5 7940.79 7974.489
+
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
+
+Note: BIC uses N = number of observations. See \[R\] BIC note.
+
+.
+
+end of do-file
+
+## Part d
+
+\* We can tell that the odds of men and women being wears of glasess/contact
+
+\* lenses for distance vision differs. The odds ration of predictor riagendr
+
+\* is about 1.68, which means the odds of a woman (riagendr = 2) wearing glasses
+
+\* /contact lenses for distance vision are 1.6797 times higher than the odds of
+
+\* a man (riagendr = 1). Next, carry out a test to check whether the proportion
+
+\* of wearers of glasses/contact lenses for distance vision differs between
+
+\* men and women.
+
+\* Perform a test for Proportions
+
+```{#| code-fold: show}
+prtest viq220, by(riagendr)
+```
+
+. do "C:\\Users\\86180\\AppData\\Local\\Temp\\STD5200_000000.tmp"
+
+. prtest viq220, by(riagendr)
+
+Two-sample test of proportions 1: Number of obs = 3053
+
+2: Number of obs = 3194
+
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
+
+Group \| Mean Std. err. z P\>\|z\| \[95% conf. interval\]
+
+\-\-\-\-\-\-\-\-\-\-\-\--+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
+
+1 \| .3714379 .0087449 .3542983 .3885776
+
+2 \| .4762054 .0088371 .458885 .4935258
+
+\-\-\-\-\-\-\-\-\-\-\-\--+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
+
+diff \| -.1047675 .0124325 -.1291347 -.0804002
+
+\| under H0: .0125122 -8.37 0.000
+
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
+
+diff = prop(1) - prop(2) z = -8.3732
+
+H0: diff = 0
+
+Ha: diff \< 0 Ha: diff != 0 Ha: diff \> 0
+
+Pr(Z \< z) = 0.0000 Pr(\|Z\| \> \|z\|) = 0.0000 Pr(Z \> z) = 1.0000
+
+.
+
+end of do-file
+
+\* From the result we can see that the p-value is small, which means there are
+
+\* not enough evidence to accept the null. Therefore, we can conclude that the
+
+\* proportion differs between men and women.
+
+# Question 2
+
+## Part a
+
+Firstly, import libraries and load the database.
+
+```{r}
+library(DBI)
+sakila <- dbConnect(RSQLite::SQLite(), "sakila_master.db")
+dbListTables(sakila)
+```
+
+Use the database to answer the question.
+
+```{r}
+#| code-fold: show
+dbGetQuery(sakila, "
+    SELECT l.name, COUNT(f.film_id) AS frequency
+    FROM language AS l
+    LEFT JOIN film AS f ON l.language_id = f.language_id
+    WHERE NOT l.name == 'English'
+    GROUP BY l.name
+    ORDER BY frequency DESC
+    LIMIT 1
+")
+```
+
+Since the frequencies of other languages are zero, we know that there is no second most common language for films.
+
+## Part b
+
+### Method 1
+
+Join category, film_category and film into a single table.
+
+```{r}
+#| code-fold: show
+result_tab_b <- dbGetQuery(sakila, "
+              SELECT *
+              FROM (SELECT *
+                    FROM category AS c
+                    LEFT JOIN film_category AS fc ON c.category_id = fc.category_id) AS cf
+              LEFT JOIN film AS f ON cf.film_id = f.film_id
+")
+```
+
+Use R built-in functions to answer the question.
+
+```{r}
+most_comm <- table(result_tab_b$name)
+answer_b <- most_comm[which.max(most_comm)]
+print(answer_b)
+```
+
+### Method 2
+
+```{r}
+#| code-fold: show
+dbGetQuery(sakila, "
+    SELECT cf.name, COUNT(f.film_id) AS frequency
+    FROM (SELECT *
+          FROM category AS c
+          LEFT JOIN film_category AS fc ON c.category_id = fc.category_id) AS cf
+    LEFT JOIN film AS f ON cf.film_id = f.film_id
+    GROUP BY cf.name
+    ORDER BY frequency DESC
+    LIMIT 1
+")
+```
+
+From both methods we find that the most common genre is Sports, which are 74 movies of this genre.
+
+## Part c
+
+### Method 1
+
+Join country, city, address and customer into a single table.
+
+```{r}
+#| code-fold: show
+result_tab_c <- dbGetQuery(sakila, "
+              SELECT *
+              FROM (SELECT *
+                    FROM (SELECT *
+                          FROM country AS co
+                          LEFT JOIN city AS ci ON co.country_id = ci.country_id) AS c
+                    LEFT JOIN address AS ad ON c.city_id = ad.city_id) AS a
+              LEFT JOIN customer AS cu ON a.address_id = cu.address_id
+")
+```
+
+Use R built-in functions to answer the question.
+
+```{r}
+counts <- table(result_tab_c$country)
+answer_c <- counts[counts == 9]
+print(answer_c)
+```
+
+### Method 2
+
+```{r}
+#| code-fold: show
+dbGetQuery(sakila, "
+              SELECT a.country, COUNT(cu.customer_id) AS frequency
+              FROM (SELECT *
+                    FROM (SELECT *
+                          FROM country AS co
+                          LEFT JOIN city AS ci ON co.country_id = ci.country_id) AS c
+                    LEFT JOIN address AS ad ON c.city_id = ad.city_id) AS a
+              LEFT JOIN customer AS cu ON a.address_id = cu.address_id
+              GROUP BY a.country
+              HAVING frequency == 9
+")
+```
+
+From both methods we find that only UK has exactly 9 customers.
+
+# Question 3
+
+Download the data and import it into R.
+
+```{r}
+us_500 <- read.csv("us-500.csv")
+```
+
+## Part a
+
+Firstly, extract email from the data.
+
+```{r}
+email <- us_500$email
+```
+
+Then find the number and calculate the proportion.
+
+```{r}
+target_num_a <- length(grep(".net", email))
+net_prop <- target_num_a / length(email)
+print(net_prop)
+```
+
+We can see that the proportion of email addresses are hosted at a domain with TLD ".net" is 0.146, which is 14.6%.
+
+## Part b
+
+The question is equivalent to find the proportion of email addresses that have at least 3 non alphanumeric characters in them since there will be expected "\@" and "." in all addresses. Remove all alphanumerics from the email addresses.
+
+```{r}
+non_alpnum <- gsub("[A-Za-z0-9]", "", email)
+```
+
+Calculate the proportion.
+
+```{r}
+non_alpnum_type <- table(non_alpnum)
+print(non_alpnum_type)
+non_alpnum_prop <- (129 + 124) / sum(non_alpnum_type)
+print(non_alpnum_prop)
+```
+
+We can see that the proportion of email addresses have at least one non alphanumeric character is 0.506, which is 50.6%.
+
+## Part c
+
+Firstly, extract all phone numbers from the data.
+
+```{r}
+phone_num <- cbind(us_500$phone1, us_500$phone2)
+```
+
+Extract the area code from the phone numbers and calculate the frequency.
+
+```{r}
+area_code <- substr(phone_num, 1, 3)
+max(table(area_code))
+freq <- table(area_code)
+```
+
+Find the most common area code.
+
+```{r}
+most_comm_ac <- freq[which.max(freq)]
+print(most_comm_ac)
+```
+
+## Part d
+
+Firstly, extract all addresses from the data.
+
+```{r}
+address <- us_500$address
+```
+
+Then extract all apartment numbers from the address.
+
+```{r}
+add_list <- strsplit(address, "#")
+has_apt <- which(sapply(add_list, length) == 2)
+c_apt_num <- sapply(add_list[has_apt], function(x) x[2])
+apt_num <- as.numeric(c_apt_num)
+```
+
+Finally, take log of the apartment numbers and draw the histogram.
+
+```{r}
+log_apt_num <- log(apt_num)
+hist(log_apt_num, xlab = "Log of Apt Number", main = "Histogram of log of Apt Number")
+```
+
+## Part e
+
+To examine whether the apartment numbers appear to follow Benford's law, we need the first digit of all the apartment numbers to follow a particular distribution defined by the law. The distribution: the leading digit d(d $\in$ {1, ..., 9}) occurs with probability P(d) = log(1 + 1 / d), where log has a base 10. Check if the leading digit of the apartment numbers has this distribution.
+
+Start with extracting the first digit from the apartment numbers.
+
+```{r}
+leading_digit <- as.numeric(substr(c_apt_num, 1, 1))
+```
+
+Then plot a histogram to compare with the distribution density plot.
+
+```{r}
+hist(leading_digit, probability = TRUE, main = "Histogram of the Data", xlab = "Leading Digit")
+```
+
+Generate the density plot of the distribution.
+
+```{r}
+prob <- c(0.301, 0.176, 0.125, 0.097, 0.079, 0.067, 0.058, 0.051, 0.046)
+leading <- 1:9
+barplot(prob, names.arg = leading, xlab = "Leading Digit", ylab = "PMF", main = "Probability Mass Function Plot")
+```
+
+From the two plots we can see that the difference between them is not trivial, which means the apartment number may not follow the Benford's Law. However, since the sample is so small, it is hard to say that the data violates the law only based on these graphs. We can check the frequency table of the leading numbers.
+
+```{r}
+print(table(leading_digit))
+```
+
+We can see that 1-9 have similar frequencies, which means they are more likely to be uniformly distributed. Thus, I believe the apartment numbers would not pass as real data based on my common sense.
+
+## Part f
+
+Firstly, extract all street numbers from the address.
+
+```{r}
+str_list <- strsplit(address, " ")
+str_char <- sapply(str_list, function(x) x[1])
+str_num <- as.numeric(str_char)
+```
+
+Then extracting the last digit from the street numbers.
+
+```{r}
+last_digit <- as.numeric(substring(str_char, nchar(str_char)))
+```
+
+Plot a histogram to compare with the distribution density plot.
+
+```{r}
+hist(last_digit, probability = TRUE, main = "Histogram of the Data", xlab = "Last Digit")
+```
+
+Similarly, the last digit of street number also seems not following the Benford's Law. Check the frequency table.
+
+```{r}
+print(table(last_digit))
+```
+
+However, the last digits of the street numbers do not follow the Benford's Law of First digit semems reasonable. Since we should consider that if it follows a Benford's Law of Last digit(if exists), we cannot just simply conclude that the street numbers are not real data. Actually it makes sense that the last digits have a uniform distribution just like the histogram shows.
